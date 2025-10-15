@@ -9,8 +9,6 @@ on:
         default: 'linux-x86_64'
         type: choice
         options:
-          - 'linux-x86_64'
-          - 'linux-aarch64'
           - 'linux-x86_64-glibc'
           - 'linux-aarch64-glibc'
           - 'macos-x86_64'
@@ -22,26 +20,14 @@ on:
         type: choice
         options:
           - '8.4'
-          - '8.3'
-          - '8.2'
-          - '8.1'
       extensions:
         description: Extensions to build (comma separated)
         required: true
+        default: 'ctype,ffi,filter,iconv,opcache,phar,shmop,sockets,zlib'
         type: string
       extra-libs:
         description: Extra libraries to build (optional, comma separated)
         type: string
-      build-cli:
-        description: Build cli binary
-        default: true
-        type: boolean
-      build-micro:
-        description: Build phpmicro binary
-        type: boolean
-      build-fpm:
-        description: Build fpm binary
-        type: boolean
       prefer-pre-built:
         description: Prefer pre-built binaries (reduce build time)
         type: boolean
@@ -68,20 +54,11 @@ on:
       extensions:
         description: Extensions to build (comma separated)
         required: true
+        default: 'ctype,ffi,filter,iconv,opcache,phar,shmop,sockets,zlib'
         type: string
       extra-libs:
         description: Extra libraries to build (optional, comma separated)
         type: string
-      build-cli:
-        description: Build cli binary
-        default: true
-        type: boolean
-      build-micro:
-        description: Build phpmicro binary
-        type: boolean
-      build-fpm:
-        description: Build fpm binary
-        type: boolean
       prefer-pre-built:
         description: Prefer pre-built binaries (reduce build time)
         type: boolean
@@ -113,16 +90,6 @@ jobs:
         id: gendef
         run: |
           case "${{ inputs.os }}" in
-            linux-x86_64)
-              DOWN_CMD="./bin/spc-alpine-docker download"
-              BUILD_CMD="./bin/spc-alpine-docker build"
-              RUNS_ON="ubuntu-latest"
-              ;;
-            linux-aarch64)
-              DOWN_CMD="./bin/spc-alpine-docker download"
-              BUILD_CMD="./bin/spc-alpine-docker build"
-              RUNS_ON="ubuntu-24.04-arm"
-              ;;
             linux-x86_64-glibc)
               DOWN_CMD="./bin/spc-gnu-docker download"
               BUILD_CMD="./bin/spc-gnu-docker build"
@@ -157,15 +124,7 @@ jobs:
           if [ ${{ inputs.prefer-pre-built }} == true ]; then
               DOWN_CMD="$DOWN_CMD --prefer-pre-built"
           fi
-          if [ ${{ inputs.build-cli }} == true ]; then
-              BUILD_CMD="$BUILD_CMD --build-cli"
-          fi
-          if [ ${{ inputs.build-micro }} == true ]; then
-              BUILD_CMD="$BUILD_CMD --build-micro"
-          fi
-          if [ ${{ inputs.build-fpm }} == true ]; then
-              BUILD_CMD="$BUILD_CMD --build-fpm"
-          fi
+          BUILD_CMD="$BUILD_CMD --build-micro"
           echo 'download='"$DOWN_CMD" >> "$GITHUB_OUTPUT"
           echo 'build='"$BUILD_CMD" >> "$GITHUB_OUTPUT"
           echo 'run='"$RUNS_ON" >> "$GITHUB_OUTPUT"
@@ -202,29 +161,12 @@ jobs:
 #        if: ${{ failure() }}
 #        uses: mxschmitt/action-tmate@v3
 
-      # Upload cli executable
-      - if: ${{ inputs.build-cli == true }}
-        name: "Upload PHP cli SAPI"
-        uses: actions/upload-artifact@v4
-        with:
-          name: php-cli-${{ inputs.php-version }}-${{ inputs.os }}
-          path: buildroot/bin/php
-
       # Upload micro self-extracted executable
-      - if: ${{ inputs.build-micro == true }}
-        name: "Upload PHP micro SAPI"
+      - name: "Upload PHP micro SAPI"
         uses: actions/upload-artifact@v4
         with:
           name: php-micro-${{ inputs.php-version }}-${{ inputs.os }}
           path: buildroot/bin/micro.sfx
-
-      # Upload fpm executable
-      - if: ${{ inputs.build-fpm == true }}
-        name: "Upload PHP fpm SAPI"
-        uses: actions/upload-artifact@v4
-        with:
-          name: php-fpm-${{ inputs.php-version }}-${{ inputs.os }}
-          path: buildroot/bin/php-fpm
 
       # Upload extensions metadata
       - uses: actions/upload-artifact@v4
