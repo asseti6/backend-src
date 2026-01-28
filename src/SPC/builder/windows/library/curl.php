@@ -44,7 +44,7 @@ class curl extends WindowsLibraryBase
                 '-DUSE_NGHTTP2=ON ' . // enable nghttp2
                 '-DCURL_USE_LIBSSH2=ON ' . // enable libssh2
                 '-DENABLE_IPV6=ON ' . // enable ipv6
-                '-DNGHTTP2_CFLAGS="/DNGHTTP2_STATICLIB" ' .
+                '-DCMAKE_C_FLAGS="/DNGHTTP2_STATICLIB" ' .
                 $alt
             )
             ->execWithWrapper(
